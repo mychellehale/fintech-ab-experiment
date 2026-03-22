@@ -5,5 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "evidently>=0.4.30",
+    "pandas",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "scikit-learn",
+    "statsmodels",
+    "shap>=0.43.0,<0.45.0",
+    "ucimlrepo>=0.0.7",
+    "tqdm>=4.67.3",
 ]
