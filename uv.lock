@@ -139,6 +139,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "shap" },
+    { name = "stats" },
     { name = "statsmodels" },
     { name = "tqdm" },
     { name = "ucimlrepo" },
@@ -152,6 +153,7 @@ requires-dist = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "shap", specifier = ">=0.43.0,<0.45.0" },
+    { name = "stats", specifier = ">=0.1.2a0" },
     { name = "statsmodels" },
     { name = "tqdm", specifier = ">=4.67.3" },
     { name = "ucimlrepo", specifier = ">=0.0.7" },
@@ -868,6 +870,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/5f/1a/0388801c10441b106
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/c2/b3f55dfdb8af9812fdb9baf70cacf3b9e82e505b2bd4324d588888b81202/slicer-0.0.7-py3-none-any.whl", hash = "sha256:0b94faa5251c0f23782c03f7b7eedda91d80144059645f452c4bc80fab875976", size = 14954, upload-time = "2020-12-16T02:38:00.949Z" },
 ]
+
+[[package]]
+name = "stats"
+version = "0.1.2a0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/43/f2d8d8e2660740ecca9c0fab85a07bc02da27d1fcc5071ee481082888720/stats-0.1.2a.tar.gz", hash = "sha256:854e59fa99f92ce8319c16149ef8e9939dba3e2237bbb0fb6a6094c60155bd4c", size = 127625, upload-time = "2010-12-31T09:02:15.131Z" }
 
 [[package]]
 name = "statsmodels"
