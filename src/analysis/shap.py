@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import shap
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, roc_auc_score
+
+from src.pipeline import encode_categoricals
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +21,10 @@ def prepare_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     treatment_flag included so SHAP can rank its importance relative to
     demographic and behavioral features.
     """
-    df = df.copy()
+    df = encode_categoricals(df.copy())
     df["treatment_flag"] = (df["group"] == "treatment").astype(int)
     df["age_band"]       = pd.cut(df["age"], bins=[0, 30, 40, 50, 60, 100],
                                    labels=[0, 1, 2, 3, 4]).astype(int)
-
-    cat_cols = ["job", "marital", "education", "contact", "housing", "loan", "poutcome"]
-    le = LabelEncoder()
-    for col in cat_cols:
-        df[col + "_enc"] = le.fit_transform(df[col].astype(str))
 
     feature_cols = [
         "age", "age_band", "balance", "campaign", "previous",

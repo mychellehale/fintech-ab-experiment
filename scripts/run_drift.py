@@ -1,10 +1,6 @@
 import logging
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.pipeline import fetch_raw, process_stream
+from src.pipeline import fetch_or_load, process_stream
 from src.analysis.drift import (
     prepare_features, temporal_split, train_on_reference,
     add_predictions, run_drift_report, plot_prediction_drift
@@ -17,7 +13,7 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    raw                 = fetch_raw()
+    raw                 = fetch_or_load()
     df                  = process_stream(raw)
     df                  = prepare_features(df)
     reference, current  = temporal_split(df)

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import statsmodels.formula.api as smf
 from scipy.stats import chi2_contingency, norm
+from statsmodels.stats.multitest import multipletests
 
 logger = logging.getLogger(__name__)
 
@@ -109,15 +110,25 @@ def segmented_analysis(df: pd.DataFrame) -> pd.DataFrame:
                 "segment": segment_col, "value": segment_val,
                 "n_treatment": len(treatment), "n_control": len(control),
                 "t_rate": t_rate, "c_rate": c_rate, "lift": t_rate - c_rate,
-                "p_value": p, "significant": p < ALPHA
+                "p_value": p
             })
 
     results_df = pd.DataFrame(segment_results)
+
+    # Benjamini-Hochberg correction across all segment tests
+    _, corrected, _, _ = multipletests(results_df["p_value"], alpha=ALPHA, method="fdr_bh")
+    results_df["p_corrected"] = corrected
+    results_df["significant"]  = results_df["p_corrected"] < ALPHA
+
+    n_raw       = (results_df["p_value"] < ALPHA).sum()
+    n_corrected = results_df["significant"].sum()
+    logger.info(f"Segmentation: {n_raw} significant before BH correction, {n_corrected} after")
+
     for _, row in results_df.iterrows():
         sig = "SIGNIFICANT" if row["significant"] else "not significant"
         logger.info(
             f"{row['segment']:<12} {str(row['value']):<20} "
-            f"lift={row['lift']:+.1%} p={row['p_value']:.4f} {sig}"
+            f"lift={row['lift']:+.1%} p={row['p_value']:.4f} p_bh={row['p_corrected']:.4f} {sig}"
         )
     return results_df
 
@@ -131,7 +142,7 @@ def logistic_regression(df: pd.DataFrame) -> None:
     df["treatment_flag"] = (df["group"] == "treatment").astype(int)
     df["housing_bin"]    = (df["housing"] == "yes").astype(int)
 
-    formula = "converted ~ treatment_flag + balance + campaign + housing_bin + C(job) + C(marital) + C(education)"
+    formula = "converted ~ treatment_flag + balance + campaign + housing_bin + C(job) + C(marital) + C(education)"  # noqa: E501
     try:
         model  = smf.logit(formula, data=df).fit(disp=False)
         coef   = model.params["treatment_flag"]

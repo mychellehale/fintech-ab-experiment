@@ -1,10 +1,6 @@
 import logging
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.pipeline import fetch_raw, process_stream
+from src.pipeline import fetch_or_load, process_stream
 from src.analysis.summary import encode_features, compute_results, plot_summary, write_readme
 
 logging.basicConfig(
@@ -14,7 +10,7 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    raw           = fetch_raw()
+    raw           = fetch_or_load()
     df            = process_stream(raw)
     df, feat_cols = encode_features(df)
     results       = compute_results(df, feat_cols)

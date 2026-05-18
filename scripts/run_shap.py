@@ -1,10 +1,6 @@
 import logging
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.pipeline import fetch_raw, process_stream
+from src.pipeline import fetch_or_load, process_stream
 from src.analysis.shap import prepare_features, train_classifier, run_shap, plot_shap, log_treatment_importance
 
 logging.basicConfig(
@@ -14,10 +10,10 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    raw                          = fetch_raw()
-    df                           = process_stream(raw)
-    X, y                         = prepare_features(df)
-    model, X_train, X_test       = train_classifier(X, y)
-    explainer, shap_values       = run_shap(model, X_train, X_test)
+    raw                    = fetch_or_load()
+    df                     = process_stream(raw)
+    X, y                   = prepare_features(df)
+    model, X_train, X_test = train_classifier(X, y)
+    explainer, shap_values = run_shap(model, X_train, X_test)
     plot_shap(shap_values, X_test)
     log_treatment_importance(shap_values, X_test)

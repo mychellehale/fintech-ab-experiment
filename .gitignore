@@ -4,4 +4,6 @@
 __pycache__/
 .ipynb_checkpoints/
 .venv/
+.mypy_cache/
+.cache/
 interview_prep.md

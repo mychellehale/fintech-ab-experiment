@@ -1,25 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "creditlens"
+name = "fintech-ab-experiment"
 version = "0.1.0"
-description = "Add your description here"
+description = "Production-grade A/B experiment analysis pipeline for feature adoption"
 requires-python = ">=3.11"
 dependencies = [
-    "apache-airflow>=3.2.0",
-    "catboost>=1.2.10",
     "evidently>=0.7.21",
-    "jupyter>=1.1.1",
-    "kaggle>=2.0.1",
-    "kagglehub>=1.0.0",
-    "lightgbm>=4.6.0",
-    "mlflow>=2.19.0",
+    "matplotlib>=3.9.0",
+    "numpy>=1.24",
     "pandas>=2.2,<3",
-    "protobuf>=4.21.0,<5.0.0",
     "scikit-learn>=1.8.0",
-    "seaborn>=0.13.2",
+    "scipy>=1.13.0",
     "setuptools>=82.0.1",
     "shap>=0.51.0",
-    "ucimlrepo>=0.0.7",
+    "statsmodels>=0.14.0",
     "tqdm>=4.67.3",
-    "stats>=0.1.2a0",
-    "xgboost>=3.2.0",
+    "ucimlrepo>=0.0.7",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

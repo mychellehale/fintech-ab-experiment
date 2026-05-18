@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.preprocessing import LabelEncoder
 from evidently import Report, Dataset
 from evidently.presets import DataDriftPreset
+
+from src.pipeline import encode_categoricals
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +19,8 @@ def prepare_features(df: pd.DataFrame) -> pd.DataFrame:
     Encode categoricals and add treatment flag.
     duration excluded -- post-treatment variable.
     """
-    df = df.copy()
+    df = encode_categoricals(df.copy())
     df["treatment_flag"] = (df["group"] == "treatment").astype(int)
-
-    cat_cols = ["job", "marital", "education", "contact", "housing", "loan", "poutcome"]
-    le = LabelEncoder()
-    for col in cat_cols:
-        df[col + "_enc"] = le.fit_transform(df[col].astype(str))
-
     return df
 
 

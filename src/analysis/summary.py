@@ -9,7 +9,8 @@ import statsmodels.formula.api as smf
 from scipy.stats import chi2_contingency, norm
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+
+from src.pipeline import encode_categoricals
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +21,8 @@ RANDOM_STATE = 42
 def encode_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list]:
     """duration excluded -- post-treatment variable."""
     df = df.copy()
+    df = encode_categoricals(df)
     df["treatment_flag"] = (df["group"] == "treatment").astype(int)
-    cat_cols = ["job", "marital", "education", "contact", "housing", "loan", "poutcome"]
-    le = LabelEncoder()
-    for col in cat_cols:
-        df[col + "_enc"] = le.fit_transform(df[col].astype(str))
     feature_cols = [
         "age", "balance", "campaign", "previous",
         "treatment_flag", "job_enc", "marital_enc", "education_enc",
@@ -62,7 +60,7 @@ def compute_results(df: pd.DataFrame, feature_cols: list) -> dict:
                              "t_rate": t["converted"].mean(), "c_rate": c["converted"].mean()})
 
     df["housing_bin"] = (df["housing"] == "yes").astype(int)
-    formula  = "converted ~ treatment_flag + balance + campaign + housing_bin + C(job) + C(marital)"
+    formula  = "converted ~ treatment_flag + balance + campaign + housing_bin + C(job) + C(marital) + C(education)"
     model_lr = smf.logit(formula, data=df).fit(disp=False)
     adj_or   = np.exp(model_lr.params["treatment_flag"])
     adj_p    = model_lr.pvalues["treatment_flag"]
@@ -171,7 +169,7 @@ An end-to-end A/B experiment analysis pipeline built on the UCI Bank Marketing d
 
 ## The Problem
 
-Does contacting a customer in a previous campaign make them more likely to adopt a new product? This is the core question behind campaign targeting decisions at retail banks. Answering it requires more than a p-value — you need to verify group comparability, control for confounders, measure effect size, and check whether the model holds over time.
+Is prior engagement history associated with higher feature adoption rates? This is the core question behind campaign targeting decisions at retail banks. Answering it requires more than a p-value — you need to verify group comparability, control for confounders, measure effect size, and check whether the model holds over time.
 
 ---
 
@@ -187,13 +185,13 @@ Does contacting a customer in a previous campaign make them more likely to adopt
 
 ## Methods
 
-Data is ingested via a generator-based streaming pipeline simulating chunk-by-chunk Kafka consumption. All analysis modules live in `src/analysis/` and are called by thin entry-point scripts.
+Data is ingested via a generator-based pipeline that processes data in chunks — the same pattern used with Kafka consumers or `pd.read_csv(chunksize=N)` in production. All analysis modules live in `src/analysis/` and are called by thin entry-point scripts.
 
 **Step 1 — Balance check** (`scripts/run_balance_check.py`): T-tests on numeric features and chi-squared tests on categoricals verify group comparability before any significance testing.
 
 **Step 2 — Significance testing** (`scripts/run_significance.py`): Chi-squared test, 95% confidence intervals, power analysis (Cohen's h), segmentation across age bands and job types, and logistic regression controlling for imbalanced covariates. `duration` is excluded from all models — it is a post-treatment variable that would leak outcome information.
 
-**Step 3 — SHAP explainability** (`scripts/run_shap.py`): A `GradientBoostingClassifier` is trained to predict conversion. SHAP values rank feature contributions globally and at the individual level. Relevant to EU AI Act Article 86 requirements for automated decision explanations.
+**Step 3 — SHAP explainability** (`scripts/run_shap.py`): A `GradientBoostingClassifier` is trained to predict conversion. SHAP values rank feature contributions globally and at the individual level, which is a prerequisite for the individual-level explanations required by EU AI Act Article 86. Notably, `treatment_flag` ranks low in SHAP importance — account balance, housing status, and prior campaign outcome are stronger predictors of conversion than group membership alone.
 
 **Step 4 — Drift detection** (`scripts/run_drift.py`): Dataset split into reference (first 60%) and current (last 40%) periods. Evidently compares feature distributions and model predictions across periods.
 
@@ -214,7 +212,7 @@ Data is ingested via a generator-based streaming pipeline simulating chunk-by-ch
 
 The lift is **{sig}** at alpha=0.05.
 
-After controlling for imbalanced covariates identified in the balance check, the adjusted odds ratio of {r['adj_or']:.2f}x confirms the treatment effect survives covariate adjustment.
+After controlling for imbalanced covariates identified in the balance check, previously contacted users have {r['adj_or']:.2f}x the odds of converting compared to otherwise similar control users. This is an associational estimate — groups were not randomly assigned, so residual confounding from unobserved variables cannot be fully ruled out.
 
 ![Summary](outputs/summary.png)
 
@@ -259,7 +257,7 @@ uv run python scripts/run_summary.py
 
 ## Compliance
 
-The SHAP explainability layer addresses EU AI Act Article 86, which requires meaningful explanations for automated decisions affecting individuals — a live compliance requirement for credit, fraud, and personalisation models at regulated financial institutions.
+EU AI Act Article 86 requires individual-level explanations for automated decisions affecting customers. The SHAP layer enables per-prediction feature attribution — a prerequisite for satisfying that requirement — and is the pattern used in production credit and fraud models at regulated financial institutions.
 """
     with open(readme_path, "w") as f:
         f.write(readme)

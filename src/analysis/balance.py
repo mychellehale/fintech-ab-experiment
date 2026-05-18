@@ -27,6 +27,8 @@ def balance_check(df: pd.DataFrame) -> None:
     """
     logger.info("Running balance check")
 
+    # duration is included here to characterise the groups, not as a model feature.
+    # It is excluded from all models because it is a post-treatment variable.
     numeric_vars     = ["age", "balance", "duration", "campaign", "previous"]
     categorical_vars = ["job", "marital", "education", "housing"]
 
