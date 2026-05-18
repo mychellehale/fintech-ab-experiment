@@ -143,19 +143,16 @@ def logistic_regression(df: pd.DataFrame) -> None:
     df["housing_bin"]    = (df["housing"] == "yes").astype(int)
 
     formula = "converted ~ treatment_flag + balance + campaign + housing_bin + C(job) + C(marital) + C(education)"  # noqa: E501
-    try:
-        model  = smf.logit(formula, data=df).fit(disp=False)
-        coef   = model.params["treatment_flag"]
-        pval   = model.pvalues["treatment_flag"]
-        or_val = np.exp(coef)
+    model  = smf.logit(formula, data=df).fit(disp=False)
+    coef   = model.params["treatment_flag"]
+    pval   = model.pvalues["treatment_flag"]
+    or_val = np.exp(coef)
 
-        logger.info(f"Logistic regression | odds_ratio={or_val:.3f} p={pval:.6f}")
-        if pval < ALPHA:
-            logger.info(f"Treatment effect REMAINS significant after covariate control. OR={or_val:.2f}x")
-        else:
-            logger.warning("Treatment effect NOT significant after covariate control.")
-    except Exception as e:
-        logger.error(f"Logistic regression failed: {e}")
+    logger.info(f"Logistic regression | odds_ratio={or_val:.3f} p={pval:.6f}")
+    if pval < ALPHA:
+        logger.info(f"Treatment effect REMAINS significant after covariate control. OR={or_val:.2f}x")
+    else:
+        logger.warning("Treatment effect NOT significant after covariate control.")
 
 
 def plot_results(df: pd.DataFrame, segment_results: pd.DataFrame,

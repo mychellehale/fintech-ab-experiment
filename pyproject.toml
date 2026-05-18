@@ -23,3 +23,12 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning:evidently"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
