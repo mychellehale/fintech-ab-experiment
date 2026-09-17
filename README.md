@@ -10,7 +10,7 @@ The infrastructure choices are deliberate: a generator-based streaming ingest si
 
 ---
 
-## Headline findings
+## Headline Findings
 
 - **The raw lift is 13.9 percentage points.** Treatment customers (prior contact) converted at 23.1%, control customers at 9.2%. The gap is large, consistent, and the test has 100% observed power.
 - **The effect isn't a selection artifact.** Treatment customers differ from control on age, balance, housing status, and job, so a raw comparison overstates the effect. After adjusting for every imbalanced covariate in a logistic regression, the odds ratio is 2.93x (p < 0.001). The lift survives covariate adjustment but I can't rule out unmeasured confounders.
@@ -19,7 +19,7 @@ The infrastructure choices are deliberate: a generator-based streaming ingest si
 
 ---
 
-## The question
+## The Question
 
 Does contacting a customer in a previous campaign actually cause them to be more likely to subscribe to a new product, or do prior-contact customers just look different from never-contacted customers in ways that already make them more likely to convert?
 
@@ -35,11 +35,11 @@ Most campaign analytics stops at "people who got the call converted more often, 
 - **Control definition**: customers with no prior campaign contact
 - **Outcome**: subscribed to a term deposit (`y == 'yes'`)
 
-### Why this isn't a real experiment
+### Why This Isn't a Real Experiment
 
 Treatment customers weren't randomly assigned. They self-selected by being reachable in a prior campaign, which means they probably differ from control customers on traits the bank didn't randomize over. That's why the balance check happens before any inference and the logistic regression controls for measured imbalances. Even with adjustment, this is causal-flavored observational analysis, not a randomized A/B test.
 
-### The post-treatment variable trap
+### The Post-Treatment Variable Trap
 
 The dataset includes `duration` (call length in seconds), which is recorded after the conversion outcome is known. Including it in a model would leak the answer and inflate every metric. It's excluded from all significance tests and models throughout the pipeline. The README mentions this explicitly because post-treatment variable leakage is one of the most common ways A/B analyses go wrong in production settings.
 
@@ -59,7 +59,7 @@ The pipeline runs in four steps, each with its own analysis module and entry scr
 
 ---
 
-## Full results
+## Full Results
 
 | Metric | Value |
 |--------|-------|
@@ -76,13 +76,13 @@ The pipeline runs in four steps, each with its own analysis module and entry scr
 
 ---
 
-## On the EU AI Act framing
+## On the EU AI Act Framing
 
 This is observational analysis of an existing campaign, not a deployed automated decision system, so EU AI Act compliance isn't directly required here. But if these findings informed a production targeting model that decided which customers to call, Article 86 (right to explanation for automated decisions) would apply. The SHAP layer in Step 3 is the kind of infrastructure that makes Article 86 compliance possible. Building it into the analysis pipeline rather than bolting it on later is the right pattern.
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
 src/
@@ -100,7 +100,7 @@ tests/                       # 44 tests, no network calls
 
 ---
 
-## How to run
+## How to Run
 
 **Setup**
 
@@ -128,7 +128,7 @@ pytest tests/
 
 ---
 
-## Future work
+## Future Work
 
 - **Sensitivity analysis for unmeasured confounding.** Rosenbaum bounds or E-values would quantify how strong an unmeasured confounder would need to be to nullify the adjusted effect. This is the natural next step for an observational study claiming causal-flavored findings.
 - **Propensity score methods.** Inverse probability weighting or matching as an alternative to regression adjustment, to triangulate the effect estimate using a different identification strategy.
